@@ -1,0 +1,1474 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Residual network:</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+	text-align: center;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style id="brutalist">
+:root{--ink:#111;--paper:#f6f4ee;--accent:#ffe600;--sans:"Helvetica Neue",Helvetica,Arial,sans-serif;--mono:"Courier New",Courier,"Liberation Mono",monospace}
+html,body{background:var(--paper);color:var(--ink);margin:0;padding:0}
+@media only screen{body{max-width:none;width:100%;margin:0;padding:0;color:var(--ink)}}
+.sans,.pdf .sans,body{font-family:var(--sans)}
+article.page{background:var(--paper);width:100%;max-width:none;padding:0 0 1rem}
+header{border-bottom:3px solid var(--ink);padding:2.5rem 4vw 1.5rem}
+.page-title{font-family:var(--sans);font-size:clamp(2.2rem,6vw,4rem);line-height:1.05;text-transform:uppercase;letter-spacing:-.02em;font-weight:900;margin:0}
+.page-description{margin:0}
+.page-body{padding:0 4vw;max-width:none;font-size:1.08rem;line-height:1.75}
+h1,h2,h3{font-family:var(--sans);font-weight:900;text-transform:uppercase;letter-spacing:-.005em;line-height:1.2}
+h2{font-size:1.5rem;margin:3rem 0 1rem;padding:.4rem 0;border-top:3px solid var(--ink);border-bottom:0}
+h3{font-size:1.15rem;margin:2rem 0 .8rem;padding-left:.7rem;border-left:8px solid var(--ink)}
+a,a.visited{color:var(--ink);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+a:hover{background:var(--accent)}
+strong{font-weight:800}
+.table_of_contents{border:2px solid var(--ink);margin:1rem 0 2rem;background:transparent}
+.table_of_contents-item{font-size:.95rem;padding:.45rem .8rem;border-bottom:1px solid var(--ink);font-weight:600}
+.table_of_contents-item:last-child{border-bottom:0}
+.table_of_contents-item:hover{background:var(--accent)}
+.table_of_contents-link{opacity:1;border-bottom:0;text-decoration:none;display:block}
+.table_of_contents-indent-1,.table_of_contents-indent-2,.table_of_contents-indent-3{margin-left:0;padding-left:2rem}
+figure,figure.image{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;margin:2rem 0;border:0;background:none;box-shadow:none;padding:0;text-align:center}
+figure>a{display:block;max-width:100%;line-height:0}
+figure img,figure video{display:block;margin:0 auto;border:2px solid var(--ink);background:#fff;border-radius:0!important;max-width:100%;height:auto}
+figcaption{opacity:1;font-size:.85rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;text-align:center;max-width:100%;margin:.9rem auto 0;padding:0}
+ul,ol{border-left:3px solid var(--ink);padding-inline-start:2.2em;padding-top:.2rem;padding-bottom:.2rem}
+li{margin:.3rem 0}
+pre.code,.code{font-family:var(--mono)}
+pre.code{background:var(--ink);color:#f2f2f2;border:2px solid var(--ink);border-radius:0;padding:1.2rem;margin:1.5rem 0 2rem;font-size:.9rem;line-height:1.55;overflow-x:auto}
+pre.code code,pre.code code *{font-family:var(--mono)!important;text-shadow:none!important;background:none!important}
+code[class*=language-]{color:#f2f2f2}
+.token.comment,.token.prolog,.token.doctype,.token.cdata{color:#8a8a8a}
+.token.punctuation,.token.operator{color:#f2f2f2}
+.token.keyword,.token.boolean,.token.important{color:var(--accent);font-weight:700}
+.token.string,.token.char,.token.builtin,.token.inserted{color:#7fe3b8}
+.token.number,.token.constant,.token.symbol{color:#ff9a7a}
+.token.function,.token.class-name{color:#8eb4ff}
+.token.decorator,.token.annotation{color:#ff7a59}
+code{font-family:var(--mono)}
+p code,li code{background:rgba(0,0,0,.08);padding:.05em .3em}
+mark{background:var(--accent)}
+hr{border-bottom:2px solid var(--ink)}
+table,th,td{border:2px solid var(--ink)}
+th{color:var(--ink);background:var(--accent);font-weight:800}
+.callout{border:2px solid var(--ink)!important;border-radius:0}
+.notion-text-equation-token{display:inline-block;border:2px solid var(--ink);padding:.05rem .5rem}
+::selection{background:var(--ink);color:var(--accent)}
+@media (max-width:600px){.page-body{padding:0 1rem}header{padding:1.5rem 1rem 1rem}h2{font-size:1.2rem}}
+@media print{html,body{background:#fff}}
+
+details.code-fold{display:block;margin:1.5rem 0 2rem;border:2px solid var(--ink);background:transparent}
+.code-fold-summary{cursor:pointer;list-style:none;padding:.7rem 1rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;background:var(--accent);user-select:none}
+.code-fold-summary::-webkit-details-marker{display:none}
+.code-fold-summary::before{content:"+ Show code"}
+details.code-fold[open]>.code-fold-summary::before{content:"\2212  Hide code"}
+details.code-fold[open]>.code-fold-summary{border-bottom:2px solid var(--ink)}
+.code-fold-body{position:relative}
+.code-fold-body pre.code{margin:0;border:0}
+.code-copy{position:absolute;top:.6rem;right:.6rem;z-index:2;font:800 .8rem var(--sans);text-transform:uppercase;letter-spacing:.04em;background:var(--accent);color:var(--ink);border:2px solid var(--ink);padding:.3rem .7rem;cursor:pointer;border-radius:0}
+.code-copy:hover{background:#fff}
+
+.sk{-webkit-box-decoration-break:clone;box-decoration-break:clone;padding:.02em .18em .18em;font-weight:inherit}
+.sk-yellow{background:linear-gradient(104deg,transparent .5%,rgba(255,224,0,.9) 2.5%,rgba(255,206,0,.75) 97%,transparent 99.5%) 0 75%/100% 88% no-repeat;border-radius:.7em .2em .6em .25em}
+.sk-orange{background:linear-gradient(103deg,transparent .5%,rgba(255,140,40,.55) 3%,rgba(255,120,20,.45) 96%,transparent 99%) 0 75%/100% 88% no-repeat;border-radius:.3em .7em .25em .6em}
+.sk-pink{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='6' viewBox='0 0 14 6'%3E%3Cpath d='M0 3 Q3.5 -0.6 7 3 T14 3' fill='none' stroke='%23ff2d87' stroke-width='1.9' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 100%/14px 6px,linear-gradient(transparent 55%,rgba(255,45,135,.12) 55%)}
+.sk-blue{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='7' viewBox='0 0 18 7'%3E%3Cpath d='M0 6 L4.5 1 L9 6 L13.5 1 L18 6' fill='none' stroke='%231f4bff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") repeat-x 0 100%/18px 7px,linear-gradient(transparent 55%,rgba(31,75,255,.10) 55%)}
+.sk-purple{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='6' viewBox='0 0 22 6'%3E%3Cpath d='M1 3.5 L9 2.5 M12 3 L21 3.8' fill='none' stroke='%238a2be2' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 100%/22px 6px,linear-gradient(transparent 55%,rgba(138,43,226,.10) 55%)}
+.sk-green{border:2.5px solid #00a862;border-radius:255px 14px 225px 14px/14px 225px 14px 255px;padding:.05em .45em .1em;background:rgba(0,200,120,.10)}
+@media print{.sk{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body><article id="404a0cd3-a24d-8015-9cb6-e5232ff256fd" class="page sans"><header><h1 class="page-title" dir="auto">Residual network:</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><h2 id="404a0cd3-a24d-8002-ac84-e1c01a0c9f2e" class="" dir="auto">Introduction:</h2><p id="405a0cd3-a24d-8038-a529-e5724f372dc3" class="" dir="auto">In this article, I have tried to explain what residual connections are, what problems they solve, how they work, and how to implement them. I have also implemented a custom ResNet-10 model to share practical PyTorch code demonstrating how residual connections can be implemented in a neural network.</p><p id="405a0cd3-a24d-8074-ac17-fd0f1851e43d" class="" dir="auto">I have intentionally avoided going too deep into the mathematical details, focusing instead on clear explanations of the concepts and practical implementation.</p><h2 id="404a0cd3-a24d-8013-846a-cfadc840ddf1" class="" dir="auto">Table of content:</h2><div class="table_of_contents"><div class="table_of_contents-item"><a href="#404a0cd3-a24d-8002-ac84-e1c01a0c9f2e" class="table_of_contents-link">Introduction:</a></div><div class="table_of_contents-item"><a href="#404a0cd3-a24d-8007-bfe5-c1ce6c620530" class="table_of_contents-link">What is the problem it actually solving?</a></div><div class="table_of_contents-item"><a href="#404a0cd3-a24d-80ae-8a8a-ceec08d72c81" class="table_of_contents-link">What is gradient?</a></div><div class="table_of_contents-item"><a href="#404a0cd3-a24d-80a8-a7eb-f9cf1350024d" class="table_of_contents-link">What is vanishing gradient problem?</a></div><div class="table_of_contents-item"><a href="#404a0cd3-a24d-80af-a0c6-d156cb1438e5" class="table_of_contents-link">Idea of residual connection: </a></div><div class="table_of_contents-item"><a href="#404a0cd3-a24d-8052-a3ee-c8761b8c060f" class="table_of_contents-link">How we create residual network?</a></div><div class="table_of_contents-item"><a href="#404a0cd3-a24d-80e7-9d5b-f3cc97a47753" class="table_of_contents-link">Implimentation of resnet-10 from scratch:</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a href="#404a0cd3-a24d-8005-b70c-e44bcb1684e8" class="table_of_contents-link">Theory:</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a href="#405a0cd3-a24d-807f-8708-f55ddbc91e1f" class="table_of_contents-link">Counting the 18 Layers</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a href="#404a0cd3-a24d-806c-a3f2-f9d57723dcf2" class="table_of_contents-link">Code:</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a href="#404a0cd3-a24d-80c7-b98d-f7e23589cbd8" class="table_of_contents-link">Result:</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a href="#404a0cd3-a24d-804e-b0f3-ff93b8266637" class="table_of_contents-link">Possible improvments in this training loop:</a></div><div class="table_of_contents-item"><a href="#405a0cd3-a24d-80a8-a15d-fb084c40e3dd" class="table_of_contents-link">Conclusion:</a></div><div class="table_of_contents-item"><a href="#405a0cd3-a24d-8080-9923-db7f8264eb5f" class="table_of_contents-link">Sources:</a></div></div><p id="404a0cd3-a24d-8046-9b09-c25679ce5f55" class="" dir="auto">
+</p><h2 id="404a0cd3-a24d-8007-bfe5-c1ce6c620530" class="" dir="auto">What is the problem it actually solving?</h2><p id="405a0cd3-a24d-8035-a2cf-da5bb5c29da6" class="" dir="auto">There is a specific problem we encounter when building deep neural networks with multiple layers. For complex, real-world tasks, we often need deeper and more sophisticated models. Common sense suggests that if we make a neural network deeper, it should perform better. However, in practice, increasing the network&#x27;s depth does not always improve performance; <span class="sk sk-pink">sometimes, it can actually make the network perform worse</span>.</p><p id="405a0cd3-a24d-805a-b616-c04aa8f5b246" class="" dir="auto">One of the reasons for this difficulty is <span class="sk sk-yellow">the vanishing gradient problem, in which gradients become extremely small as they propagate backward through the network</span>, making it difficult for earlier layers to learn effectively. <span class="sk sk-blue">Residual Networks (ResNets) address this issue by introducing residual connections, also known as skip connections</span>, which provide more direct paths for gradient flow and make deep neural networks easier to optimize.</p><h2 id="404a0cd3-a24d-80ae-8a8a-ceec08d72c81" class="" dir="auto">What is gradient?</h2><p id="404a0cd3-a24d-8024-9840-fbec51627169" class="" dir="auto"><span class="sk sk-orange">A gradient is a value that tells us how much the loss function changes when the weights of a neural network change.</span> It helps determine how much and in which direction the weights should be updated. A small gradient usually results in a small weight update, whereas a large gradient usually results in a larger weight update, assuming the learning rate remains the same.</p><p id="404a0cd3-a24d-805d-9b3f-f020cc66f3bb" class="" dir="auto">
+</p><h2 id="404a0cd3-a24d-80a8-a7eb-f9cf1350024d" class="" dir="auto">What is vanishing gradient problem?</h2><p id="404a0cd3-a24d-8008-b6a1-e69c8faa4b1d" class="" dir="auto">We train neural networks using backpropagation, during which the gradients are calculated from the last layer to the first layer, and the weights are updated based on these gradients. Now, if our neural network is deep, meaning it has many layers, the gradients have to pass through many layers during backpropagation. During this process, the gradients are repeatedly multiplied by derivatives of activation functions and other factors. <span class="sk sk-purple">These repeated multiplications can cause the gradients to become very small.</span></p><p id="404a0cd3-a24d-80c6-a888-eed69fbb65fb" class="" dir="auto">Now, very small gradients cause very small weight updates in the earlier layers, which means these layers learn very slowly or may stop learning effectively. <span class="sk sk-green">This problem is called the vanishing gradient problem.</span></p><p id="404a0cd3-a24d-8024-8f20-f98e2a1077ca" class="" dir="auto">
+</p><figure id="404a0cd3-a24d-809c-9d0a-cb628930d693" dir="ltr" style="text-align: center;"><video id="vanishing-grad-video" style="max-width: 100%; border-radius: 4px;" muted loop playsinline controls preload="metadata"><source src="Residual%20network/Screencast_from_2026-10-25_20-50-38.webm" type="video/webm">Your browser does not support the video tag.</video><figcaption>Animation of vanishing gradient problem</figcaption></figure><p id="404a0cd3-a24d-8095-a7a1-cecc0f0e29b7" class="" dir="auto">
+</p><h2 id="404a0cd3-a24d-80af-a0c6-d156cb1438e5" class="" dir="auto">Idea of residual connection: </h2><p id="404a0cd3-a24d-807c-907d-eb05758a1b1d" class="" dir="auto">We saw previously how, in normal neural networks, gradients have to pass through multiple layers, which is why their values get very small and ultimately cause the vanishing gradient problem.</p><p id="404a0cd3-a24d-8074-944e-d3cc48bb99b7" class="" dir="auto">In residual connections, we use a special type of connection called a &quot;skip connection&quot; in the network. Instead of having to pass through every single layer sequentially, <span class="sk sk-yellow">the gradients can take a shortcut across a block of layers</span>. Because of this shortcut, the gradient values don&#x27;t get crushed to zero, which prevents the vanishing gradient problem.</p><p id="404a0cd3-a24d-8037-9c01-ec7d8cdfd8a1" class="" dir="auto">If we formalize a normal neural network, it becomes:</p><p id="404a0cd3-a24d-801f-8486-cea5aa955fcf" class="" dir="auto">y = F(x)</p><p id="404a0cd3-a24d-80d4-a2ac-eba9dd30d782" class="" dir="auto">Where:</p><ul id="404a0cd3-a24d-80d6-951b-cd1a80ae9a8e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">F is the transformation function (the stacked layers in our model)</li></ul><ul id="404a0cd3-a24d-802b-a780-d5b4b05c1097" class="bulleted-list" dir="auto"><li style="list-style-type:disc">x is the given input</li></ul><ul id="404a0cd3-a24d-8082-8455-e2cf929d027a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">y is the output</li></ul><p id="404a0cd3-a24d-80ad-b710-f0aedf2573c2" class="" dir="auto">If we provide an input (x) to our model (F), it will produce an output (y). But in a residual connection, this formula becomes:</p><p id="404a0cd3-a24d-8007-8219-eec930b31273" class="" dir="auto">y = F(x) + x</p><p id="404a0cd3-a24d-8029-896a-de53ba0503d1" class="" dir="auto">Here, <span class="sk sk-green">adding back the input (x) is what creates the skip connection</span>. During backpropagation, <span class="sk sk-blue">this identity path provides a direct route for gradients with a derivative of 1</span>, ensuring they don&#x27;t vanish even in very deep networks.</p><p id="404a0cd3-a24d-80fb-94bc-d65a57384325" class="" dir="auto">
+</p><figure id="404a0cd3-a24d-80c5-96ff-d9a751538257" class="image" data-notion-image="Residual%20network/Screenshot_from_2026-10-26_00-54-30.png" dir="ltr"><a href="Residual%20network/Screenshot_from_2026-10-26_00-54-30.png"><img style="width:384px" src="Residual%20network/Screenshot_from_2026-10-26_00-54-30.png"/></a><figcaption>Example of skip connection source: geeksforgeeks</figcaption></figure><h2 id="404a0cd3-a24d-8052-a3ee-c8761b8c060f" class="" dir="auto">How we create residual network?</h2><p id="404a0cd3-a24d-800c-bc2b-e95b7d86f557" class="" dir="auto"><span class="sk sk-orange">Residual networks are basically created by stacking multiple blocks named residual blocks.</span> These residual blocks contain multiple layers with a residual connection, and we stack multiple of these residual blocks to form a deep residual network.</p><p id="404a0cd3-a24d-80a1-8320-cb7609c666f6" class="" dir="auto"><span class="sk sk-pink">There are mainly three types of residual blocks: basic block, bottleneck block, and pre-activation block.</span></p><p id="404a0cd3-a24d-80ec-a2bd-e0580459e6ef" class="" dir="auto">The first two are mostly used in ResNet architectures, and the third one is also used in pre-activation ResNets. A similar design, known as pre-normalization, is commonly used in Transformer-based models.</p><ol type="1" id="404a0cd3-a24d-809c-a9c0-fed208cc7f67" class="numbered-list" start="1" dir="auto"><li><strong>Basic block:</strong> A basic block is the simplest building block used in the original ResNet architecture. This block consists of two sequential 3 × 3 convolutional layers and a residual connection. The input and output dimensions are usually equal. If their dimensions differ, a projection shortcut can be used to match them.</li></ol><ol type="1" id="404a0cd3-a24d-80ea-b703-c52f2d2cb7e1" class="numbered-list" start="2" dir="auto"><li><strong>Bottleneck block:</strong> A bottleneck block consists of three sequential convolutional layers and a residual connection. The first layer in this block is a 1 × 1 convolution for dimension reduction. The second layer performs a 3 × 3 convolution, and the last layer is another 1 × 1 convolution for dimension restoration or expansion. The exact amount of dimension reduction depends on the architecture. The ResNet-50, ResNet-101, and ResNet-152 models are all based on bottleneck blocks.</li></ol><ol type="1" id="404a0cd3-a24d-8034-9d10-ec165616906c" class="numbered-list" start="3" dir="auto"><li><strong>Pre-activation block:</strong> The pre-activation residual block applies normalization and activation functions before applying the residual function (F). Formally, the computation of a pre-activation residual block can be written as:</li></ol><p id="404a0cd3-a24d-802c-95f9-c2b07cd17b8b" class="" dir="auto"><span data-notion-inline-equation="x_{\ell+1} = F(\phi(x_\ell)) + x_\ell " class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6389em;vertical-align:-0.2083em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord mathnormal">ϕ</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">))</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">ℓ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p><p id="404a0cd3-a24d-80f4-a87b-c690d9ada7e5" class="" dir="auto">where (\phi) represents normalization and activation operations, such as Batch Normalization followed by ReLU, and (F) represents the residual function.</p><p id="404a0cd3-a24d-80dd-b881-feade55adf3e" class="" dir="auto">This design reduces the number of non-identity mappings between residual blocks and <span class="sk sk-purple">allows an identity mapping directly from the input to the output</span>. This improves gradient propagation and makes it easier to train very deep neural networks. Pre-activation ResNets were shown to perform well when training networks with hundreds of layers.</p><p id="404a0cd3-a24d-80ab-82b9-eb8098a61f67" class="" dir="auto">Since GPT-2, Transformer blocks have commonly used pre-normalization, in which normalization is applied before the attention and feed-forward sublayers. This design is conceptually similar to pre-activation ResNets, although the two are not exactly the same.</p><p id="404a0cd3-a24d-803c-ad11-f28da95402d0" class="" dir="auto">
+</p><figure id="404a0cd3-a24d-804b-8d90-c616c104ee04" class="image" data-notion-image="Residual%20network/Screenshot_from_2026-10-26_01-22-07.png" dir="ltr"><a href="Residual%20network/Screenshot_from_2026-10-26_01-22-07.png"><img style="width:720px" src="Residual%20network/Screenshot_from_2026-10-26_01-22-07.png"/></a><figcaption>Three different residual blocks</figcaption></figure><p id="404a0cd3-a24d-8017-a8dc-c0e12448e1aa" class="" dir="auto">
+</p><h2 id="404a0cd3-a24d-80e7-9d5b-f3cc97a47753" class="" dir="auto">Implimentation of resnet-10 from scratch:</h2><h3 id="404a0cd3-a24d-8005-b70c-e44bcb1684e8" class="" dir="auto">Theory:</h3><p id="404a0cd3-a24d-80ca-8017-c58a3c1d598f" class="" dir="auto">We will follow the resnet-18 architechure and decrease the number of layer and create our own model resnet-10 from scratch and train it from scratch on the fashion-mnist dataset.</p><p id="405a0cd3-a24d-8079-beaa-ec54b1721d30" class="" dir="auto">First, we will learn about the ResNet-18 architecture.</p><p id="405a0cd3-a24d-809e-989c-d69259dc0b44" class="" dir="auto"><strong>ResNet-18 stands for Residual Network with 18 layers.</strong> It is a convolutional neural network (CNN) that uses residual connections, also known as skip connections, to facilitate the training of deep neural networks.</p><p id="405a0cd3-a24d-8063-8ba8-fefeae3d2c1f" class="" dir="auto">ResNet-18 is built using <strong>BasicBlocks</strong>, which are the fundamental building blocks of the network.</p><p id="405a0cd3-a24d-80dd-83a6-fee17a91d5f0" class="" dir="auto">The architecture consists of:</p><ul id="405a0cd3-a24d-80b5-8fa1-cdb4e943966b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">An initial 3 × 3 convolutional layer.</li></ul><ul id="405a0cd3-a24d-8088-8eb7-dcf670bca64a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Four residual stages, with each stage containing two BasicBlocks.</li></ul><ul id="405a0cd3-a24d-8004-931c-c83e1d19bc44" class="bulleted-list" dir="auto"><li style="list-style-type:disc">One fully connected layer at the end for classification.</li></ul><p id="405a0cd3-a24d-80d6-82ba-c9e0a3c25c64" class="" dir="auto">Each BasicBlock contains two main convolutional layers, along with Batch Normalization, ReLU activation, and a shortcut connection.</p><h3 id="405a0cd3-a24d-807f-8708-f55ddbc91e1f" class="" dir="auto">Counting the 18 Layers</h3><p id="405a0cd3-a24d-808a-a425-f06819764afa" class="" dir="auto">Let&#x27;s calculate the total number of layers:</p><ol type="1" id="405a0cd3-a24d-80ab-9b80-fd702a9930ad" class="numbered-list" start="1" dir="auto"><li><strong>Initial convolutional layer:</strong> 1 layer.</li></ol><ol type="1" id="405a0cd3-a24d-803e-a3ff-fa2c5521b903" class="numbered-list" start="2" dir="auto"><li><strong>Four residual stages:</strong> Each stage contains two BasicBlocks, and each BasicBlock contains two convolutional layers.<p id="405a0cd3-a24d-805d-b0de-ea94020a406f" class="" dir="auto">Therefore, the total number of convolutional layers in the residual stages is:</p><p id="405a0cd3-a24d-8069-b446-f8a77fb3a316" class="" dir="auto"><span data-notion-inline-equation="4 \times 2 \times 2 = 16" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">16</span></span></span></span></span></p></li></ol><ol type="1" id="405a0cd3-a24d-8019-9bb7-efedee81bd43" class="numbered-list" start="3" dir="auto"><li><strong>Final fully connected layer:</strong> 1 layer.</li></ol><p id="405a0cd3-a24d-8031-87b4-fab5175256bf" class="" dir="auto">Hence, the total number of layers is:</p><p id="405a0cd3-a24d-8043-83ae-d22fb3d51a37" class="" dir="auto"><span data-notion-inline-equation="\text{Total layers} = 1 + 16 + 1" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Total layers</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">16</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span></span></p><p id="405a0cd3-a24d-802c-9918-d756d2eb39a6" class="" dir="auto"><span data-notion-inline-equation="\boxed{\text{Total layers} = 18}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord">Total layers</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">18</span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></p><p id="405a0cd3-a24d-8026-88fe-c325fc195abb" class="" dir="auto">Therefore, ResNet-18 consists of one initial convolutional layer, 16 convolutional layers distributed across eight BasicBlocks, and one final fully connected layer.</p><p id="405a0cd3-a24d-8099-b398-ec023a26494b" class="" dir="auto"><span class="sk sk-yellow">For our resnet-10 model we have just removed the last two residual stages and that makes the total layers count to 10.</span></p><figure id="405a0cd3-a24d-8029-afa1-f41a64657408" class="image" data-notion-image="Residual%20network/Screenshot_from_2026-10-26_10-15-20.png" dir="ltr"><a href="Residual%20network/Screenshot_from_2026-10-26_10-15-20.png"><img style="width:312px" src="Residual%20network/Screenshot_from_2026-10-26_10-15-20.png"/></a><figcaption>architecture diagram of resnet-10 </figcaption></figure><p id="405a0cd3-a24d-8069-b4cc-d973276ce8c4" class="" dir="auto">For further operations like batch normalization and activation functions refer the code given at the next part.</p><p id="404a0cd3-a24d-8086-9518-d6293a38fa63" class="" dir="auto">
+</p><h3 id="404a0cd3-a24d-806c-a3f2-f9d57723dcf2" class="" dir="auto">Code:</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" integrity="sha512-AKaNmg8COK0zEbjTdMHJAPJ0z6VeNqvRvH4/d5M4sHJbQQUToMBtodq4HaV4fa+WV2UTfoperElm66c9/8cKmQ==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><details class="code-fold"><summary class="code-fold-summary"></summary><div class="code-fold-body"><button type="button" class="code-copy" onclick="copyCode(this)">Copy</button><pre id="405a0cd3-a24d-8098-85d1-df7ecd5c9ae5" class="code code-wrap" data-notion-code-syntax="python"><code class="language-python" style="white-space:pre-wrap;word-break:break-all">import torch
+import torch.nn as nn
+import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
+
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+
+from torch.utils.data import DataLoader
+from sklearn.metrics import confusion_matrix, classification_report
+
+
+# ============================================================
+# 1. DEVICE CONFIGURATION
+# ============================================================
+
+device = torch.device(&quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+print(&quot;Using device:&quot;, device)
+
+
+# ============================================================
+# 2. FASHION-MNIST DATASET
+# ============================================================
+
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+])
+
+train_dataset = torchvision.datasets.FashionMNIST(
+    root=&quot;./data&quot;,
+    train=True,
+    download=True,
+    transform=transform
+)
+
+test_dataset = torchvision.datasets.FashionMNIST(
+    root=&quot;./data&quot;,
+    train=False,
+    download=True,
+    transform=transform
+)
+
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=128,
+    shuffle=True,
+    num_workers=0
+)
+
+test_loader = DataLoader(
+    test_dataset,
+    batch_size=128,
+    shuffle=False,
+    num_workers=0
+)
+
+class_names = [
+    &quot;T-shirt/top&quot;,
+    &quot;Trouser&quot;,
+    &quot;Pullover&quot;,
+    &quot;Dress&quot;,
+    &quot;Coat&quot;,
+    &quot;Sandal&quot;,
+    &quot;Shirt&quot;,
+    &quot;Sneaker&quot;,
+    &quot;Bag&quot;,
+    &quot;Ankle boot&quot;
+]
+
+
+# ============================================================
+# 3. RESNET-10 ARCHITECTURE
+# ============================================================
+
+class BasicBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, in_channels, out_channels, stride=1):
+        super(BasicBlock, self).__init__()
+
+        self.conv1 = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            bias=False
+        )
+
+        self.bn1 = nn.BatchNorm2d(out_channels)
+
+        self.relu = nn.ReLU(inplace=True)
+
+        self.conv2 = nn.Conv2d(
+            out_channels,
+            out_channels,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            bias=False
+        )
+
+        self.bn2 = nn.BatchNorm2d(out_channels)
+
+        # Projection shortcut when dimensions change
+        if stride != 1 or in_channels != out_channels:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(
+                    in_channels,
+                    out_channels,
+                    kernel_size=1,
+                    stride=stride,
+                    bias=False
+                ),
+                nn.BatchNorm2d(out_channels)
+            )
+        else:
+            self.shortcut = nn.Identity()
+
+    def forward(self, x):
+        identity = self.shortcut(x)
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        out = out + identity
+        out = self.relu(out)
+
+        return out
+
+
+class ResNet10(nn.Module):
+    def __init__(self, num_classes=10):
+        super(ResNet10, self).__init__()
+
+        # Initial convolution: 1 channel for grayscale images
+        self.conv1 = nn.Conv2d(
+            1,
+            64,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            bias=False
+        )
+
+        self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
+
+        # Stage 1: two BasicBlocks convolutions = 4 convolutions
+        self.layer1 = self.make_layer(
+            64, 64, stride=1
+        )
+
+        # Stage 2: two BasicBlocks convolutions = 4 convolutions
+        self.layer2 = self.make_layer(
+            64, 128, stride=2
+        )
+
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.fc = nn.Linear(128, num_classes)
+
+    def make_layer(self, in_channels, out_channels, stride):
+        return nn.Sequential(
+            BasicBlock(in_channels, out_channels, stride),
+            BasicBlock(out_channels, out_channels, stride=1)
+        )
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+
+        x = self.fc(x)
+
+        return x
+
+
+# ============================================================
+# 4. INITIALIZE MODEL, LOSS, AND OPTIMIZER
+# ============================================================
+
+model = ResNet10(num_classes=10).to(device)
+
+criterion = nn.CrossEntropyLoss()
+
+optimizer = optim.Adam(
+    model.parameters(),
+    lr=0.001
+)
+
+print(model)
+
+total_parameters = sum(
+    parameter.numel()
+    for parameter in model.parameters()
+    if parameter.requires_grad
+)
+
+print(&quot;Total trainable parameters:&quot;, total_parameters)
+
+
+# ============================================================
+# 5. TRAINING FUNCTION
+# ============================================================
+
+def train_one_epoch(model, loader, criterion, optimizer):
+    model.train()
+
+    running_loss = 0.0
+    correct = 0
+    total = 0
+
+    for images, labels in loader:
+        images = images.to(device)
+        labels = labels.to(device)
+
+        # Clear previous gradients
+        optimizer.zero_grad()
+
+        # Forward pass
+        outputs = model(images)
+
+        # Calculate loss
+        loss = criterion(outputs, labels)
+
+        # Backpropagation
+        loss.backward()
+
+        # Update weights
+        optimizer.step()
+
+        running_loss += loss.item() * images.size(0)
+
+        _, predicted = torch.max(outputs, dim=1)
+
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+    epoch_loss = running_loss / total
+    epoch_accuracy = 100.0 * correct / total
+
+    return epoch_loss, epoch_accuracy
+
+
+# ============================================================
+# 6. TESTING / EVALUATION FUNCTION
+# ============================================================
+
+def evaluate(model, loader, criterion):
+    model.eval()
+
+    running_loss = 0.0
+    correct = 0
+    total = 0
+
+    all_labels = []
+    all_predictions = []
+
+    with torch.no_grad():
+        for images, labels in loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+
+            loss = criterion(outputs, labels)
+
+            running_loss += loss.item() * images.size(0)
+
+            _, predicted = torch.max(outputs, dim=1)
+
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+            all_labels.extend(labels.cpu().numpy())
+            all_predictions.extend(predicted.cpu().numpy())
+
+    epoch_loss = running_loss / total
+    epoch_accuracy = 100.0 * correct / total
+
+    return (
+        epoch_loss,
+        epoch_accuracy,
+        np.array(all_labels),
+        np.array(all_predictions)
+    )
+
+
+# ============================================================
+# 7. TRAINING LOOP
+# ============================================================
+
+num_epochs = 5
+
+train_losses = []
+test_losses = []
+
+train_accuracies = []
+test_accuracies = []
+
+best_test_accuracy = 0.0
+
+for epoch in range(num_epochs):
+
+    train_loss, train_accuracy = train_one_epoch(
+        model,
+        train_loader,
+        criterion,
+        optimizer
+    )
+
+    test_loss, test_accuracy, _, _ = evaluate(
+        model,
+        test_loader,
+        criterion
+    )
+
+    train_losses.append(train_loss)
+    test_losses.append(test_loss)
+
+    train_accuracies.append(train_accuracy)
+    test_accuracies.append(test_accuracy)
+
+    print(
+        f&quot;Epoch [{epoch + 1}/{num_epochs}] &quot;
+        f&quot;| Train Loss: {train_loss:.4f} &quot;
+        f&quot;| Test Loss: {test_loss:.4f} &quot;
+        f&quot;| Train Accuracy: {train_accuracy:.2f}% &quot;
+        f&quot;| Test Accuracy: {test_accuracy:.2f}%&quot;
+    )
+
+    # Save the best model based on test accuracy
+    if test_accuracy &gt; best_test_accuracy:
+        best_test_accuracy = test_accuracy
+
+        torch.save(
+            model.state_dict(),
+            &quot;best_resnet10_fashion_mnist.pth&quot;
+        )
+
+
+# ============================================================
+# 8. PLOT TRAINING AND TEST LOSS
+# ============================================================
+
+epochs = range(1, num_epochs + 1)
+
+plt.figure(figsize=(8, 5))
+
+plt.plot(
+    epochs,
+    train_losses,
+    marker=&quot;o&quot;,
+    label=&quot;Training Loss&quot;
+)
+
+plt.plot(
+    epochs,
+    test_losses,
+    marker=&quot;s&quot;,
+    label=&quot;Test Loss&quot;
+)
+
+plt.title(&quot;ResNet-10: Training and Test Loss&quot;)
+plt.xlabel(&quot;Epoch&quot;)
+plt.ylabel(&quot;Loss&quot;)
+
+plt.xticks(list(epochs))
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.savefig(&quot;loss_graph.png&quot;, dpi=300)
+plt.show()
+
+
+# ============================================================
+# 9. PLOT TRAINING AND TEST ACCURACY
+# ============================================================
+
+plt.figure(figsize=(8, 5))
+
+plt.plot(
+    epochs,
+    train_accuracies,
+    marker=&quot;o&quot;,
+    label=&quot;Training Accuracy&quot;
+)
+
+plt.plot(
+    epochs,
+    test_accuracies,
+    marker=&quot;s&quot;,
+    label=&quot;Test Accuracy&quot;
+)
+
+plt.title(&quot;ResNet-10: Training and Test Accuracy&quot;)
+plt.xlabel(&quot;Epoch&quot;)
+plt.ylabel(&quot;Accuracy (%)&quot;)
+
+plt.xticks(list(epochs))
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.savefig(&quot;accuracy_graph.png&quot;, dpi=300)
+plt.show()
+
+
+# ============================================================
+# 10. LOAD BEST MODEL AND FINAL EVALUATION
+# ============================================================
+
+model.load_state_dict(
+    torch.load(
+        &quot;best_resnet10_fashion_mnist.pth&quot;,
+        map_location=device,
+        weights_only=True
+    )
+)
+
+(
+    final_test_loss,
+    final_test_accuracy,
+    true_labels,
+    predicted_labels
+) = evaluate(model, test_loader, criterion)
+
+print(&quot;\n========== FINAL TEST RESULTS ==========&quot;)
+print(f&quot;Test Loss: {final_test_loss:.4f}&quot;)
+print(f&quot;Test Accuracy: {final_test_accuracy:.2f}%&quot;)
+print(&quot;========================================&quot;)
+
+
+# ============================================================
+# 11. CONFUSION MATRIX
+# ============================================================
+
+cm = confusion_matrix(
+    true_labels,
+    predicted_labels
+)
+
+plt.figure(figsize=(10, 8))
+
+sns.heatmap(
+    cm,
+    annot=True,
+    fmt=&quot;d&quot;,
+    cmap=&quot;Blues&quot;,
+    xticklabels=class_names,
+    yticklabels=class_names
+)
+
+plt.title(&quot;ResNet-10 Confusion Matrix&quot;)
+plt.xlabel(&quot;Predicted Label&quot;)
+plt.ylabel(&quot;True Label&quot;)
+
+plt.xticks(rotation=45, ha=&quot;right&quot;)
+plt.yticks(rotation=0)
+
+plt.tight_layout()
+plt.savefig(&quot;confusion_matrix.png&quot;, dpi=300)
+plt.show()
+
+
+# ============================================================
+# 12. CLASSIFICATION REPORT
+# ============================================================
+
+print(&quot;\n========== CLASSIFICATION REPORT ==========&quot;)
+
+print(
+    classification_report(
+        true_labels,
+        predicted_labels,
+        target_names=class_names,
+        digits=4,
+        zero_division=0
+    )
+)
+
+
+# ============================================================
+# 13. DISPLAY SAMPLE PREDICTIONS
+# ============================================================
+
+model.eval()
+
+images, labels = next(iter(test_loader))
+
+images_device = images.to(device)
+
+with torch.no_grad():
+    outputs = model(images_device)
+    predictions = torch.argmax(outputs, dim=1)
+
+images = images.cpu()
+labels = labels.cpu()
+predictions = predictions.cpu()
+
+plt.figure(figsize=(14, 8))
+
+for i in range(12):
+    plt.subplot(3, 4, i + 1)
+
+    # Undo normalization for display
+    image = images[i].squeeze().numpy()
+    image = image * 0.5 + 0.5
+
+    true_class = class_names[labels[i].item()]
+    predicted_class = class_names[predictions[i].item()]
+
+    plt.imshow(image, cmap=&quot;gray&quot;)
+
+    color = (
+        &quot;green&quot;
+        if labels[i].item() == predictions[i].item()
+        else &quot;red&quot;
+    )
+
+    plt.title(
+        f&quot;True: {true_class}\nPredicted: {predicted_class}&quot;,
+        color=color,
+        fontsize=9
+    )
+
+    plt.axis(&quot;off&quot;)
+
+plt.suptitle(&quot;ResNet-10 Fashion-MNIST Predictions&quot;)
+
+plt.tight_layout()
+plt.savefig(&quot;sample_predictions.png&quot;, dpi=300)
+plt.show()
+
+
+# ============================================================
+# 14. SAVE TRAINING HISTORY
+# ============================================================
+
+np.savez(
+    &quot;training_history.npz&quot;,
+    train_losses=train_losses,
+    test_losses=test_losses,
+    train_accuracies=train_accuracies,
+    test_accuracies=test_accuracies
+)
+
+print(&quot;\nTraining completed successfully!&quot;)
+
+print(&quot;Saved files:&quot;)
+print(&quot;1. best_resnet10_fashion_mnist.pth&quot;)
+print(&quot;2. loss_graph.png&quot;)
+print(&quot;3. accuracy_graph.png&quot;)
+print(&quot;4. confusion_matrix.png&quot;)
+print(&quot;5. sample_predictions.png&quot;)
+print(&quot;6. training_history.npz&quot;)</code></pre></div></details><p id="405a0cd3-a24d-80de-96c3-e72223d6f931" class="" dir="auto">
+</p><p id="404a0cd3-a24d-802b-8142-d4bbae8f4c49" class="" dir="auto">I use this code to train and test our resnet-10 model on fashion-mnist dataset with only just 5 epochs.</p><h3 id="404a0cd3-a24d-80c7-b98d-f7e23589cbd8" class="" dir="auto">Result:</h3><p id="405a0cd3-a24d-803c-a944-ef07a0438f62" class="" dir="auto"><span class="sk sk-orange">In just 5 epochs this model has achived accurecy of 90.90%. with a loss of 0.2770.</span></p><figure id="405a0cd3-a24d-80d9-bdfc-ea20b87bf273" class="image" data-notion-image="Residual%20network/sample_predictions.png" dir="ltr"><a href="Residual%20network/sample_predictions.png"><img style="width:704px" src="Residual%20network/sample_predictions.png"/></a><figcaption>sample predictions by our resnet-10</figcaption></figure><p id="404a0cd3-a24d-8036-a97c-f6dac367c182" class="" dir="auto">
+</p><h3 id="404a0cd3-a24d-804e-b0f3-ff93b8266637" class="" dir="auto">Possible improvments in this training loop:</h3><p id="405a0cd3-a24d-8073-96b9-ea37ab608bef" class="" dir="auto">Five epochs is a very small number. For the Fashion-MNIST dataset, we should first <span class="sk sk-blue">apply data augmentation, increase the number of epochs to 15–20, and also implement early stopping</span>.</p><p id="405a0cd3-a24d-803b-8a37-cc423d7531da" class="" dir="auto">
+</p><h2 id="405a0cd3-a24d-80a8-a15d-fb084c40e3dd" class="" dir="auto">Conclusion:</h2><p id="405a0cd3-a24d-8035-a1e8-c9aa50c8dd3d" class="" dir="auto">In conclusion, <span class="sk sk-pink">residual connections make it possible to build and train very deep neural networks more effectively by improving gradient flow</span> and addressing some of the optimization difficulties associated with increasing network depth. The success of residual connections has influenced the development of many modern deep learning architectures. They are still widely used today, including in Transformer architectures, where skip connections help facilitate the training of deep networks.</p><p id="405a0cd3-a24d-804d-afd6-fc7190ea9570" class="" dir="auto">Overall, understanding residual connections provides a strong foundation for learning more advanced deep learning architectures. The concept of residual learning remains an important contribution to modern neural network design, helping researchers develop deeper and more capable models.</p><h2 id="405a0cd3-a24d-8080-9923-db7f8264eb5f" class="" dir="auto">Sources:</h2><ol type="1" id="405a0cd3-a24d-8022-b4b1-c3e37bafa933" class="numbered-list" start="1" dir="auto"><li><a href="https://en.wikipedia.org/wiki/Residual_neural_network">https://en.wikipedia.org/wiki/Residual_neural_network</a></li></ol><ol type="1" id="405a0cd3-a24d-8074-bf06-f86c0c95d3b8" class="numbered-list" start="2" dir="auto"><li><a href="https://www.geeksforgeeks.org/machine-learning/introduction-to-residual-networks/">https://www.geeksforgeeks.org/machine-learning/introduction-to-residual-networks/</a></li></ol><ol type="1" id="405a0cd3-a24d-80db-8eaa-c20c98617edb" class="numbered-list" start="3" dir="auto"><li><a href="https://www.ibm.com/think/topics/gradient-descent">https://www.ibm.com/think/topics/gradient-descent</a></li></ol><ol type="1" id="405a0cd3-a24d-802c-b114-cfa2119c5f70" class="numbered-list" start="4" dir="auto"><li><a href="https://machinelearningmastery.com/gradient-in-machine-learning/">https://machinelearningmastery.com/gradient-in-machine-learning/</a></li></ol><p id="405a0cd3-a24d-8085-b22f-e76e24ff5195" class="" dir="auto">
+</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span><script>
+document.addEventListener("DOMContentLoaded", function () {
+    const video = document.getElementById("vanishing-grad-video");
+    if (!video) return;
+
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                video.play().catch(function (error) {
+                    // Autoplay policy prevented playback until user interaction
+                });
+            } else {
+                video.pause();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    observer.observe(video);
+});
+</script><script>
+function copyCode(btn){var c=btn.parentNode.querySelector('code'),t=c.textContent;
+function done(){var o=btn.textContent;btn.textContent='Copied';setTimeout(function(){btn.textContent=o},1500)}
+if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(done,fb)}else{fb()}
+function fb(){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){}document.body.removeChild(a)}}
+</script></body></html>
